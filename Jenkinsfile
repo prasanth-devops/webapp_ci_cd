@@ -2,27 +2,24 @@ pipeline {
     agent any
 
     environment {
-        // Jenkins SSH credentials ID
-        SSH_CREDENTIALS_ID = 'ec2-ssh-key'  
         EC2_USER = 'ubuntu'
-        EC2_HOST = '100.26.182.226'
-        DEPLOY_PATH = '/var/www/html/'
+        EC2_HOST = '100.26.182.226'   // Replace with your EC2 public IP
+        DEPLOY_PATH = '/var/www/html/webapp'  // Or wherever you want to deploy
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout your GitHub repo
-                git branch: 'master', url: 'https://github.com/prasanth-devops/webapp_ci_cd.git', credentialsId: ''
+                git branch: 'master',
+                    url: 'https://github.com/prasanth-devops/webapp_ci_cd.git'
             }
         }
 
         stage('Deploy to EC2') {
             steps {
-                // Use SSH credentials to deploy code
-                sshagent([env.SSH_CREDENTIALS_ID]) {
+                sshagent(['ec2-ssh-key']) {
                     sh """
-                        # Copy all project files to EC2 web directory
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'mkdir -p ${DEPLOY_PATH}'
                         scp -o StrictHostKeyChecking=no -r * ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}
                     """
                 }
